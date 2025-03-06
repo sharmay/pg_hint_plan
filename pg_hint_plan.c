@@ -3423,10 +3423,14 @@ restrict_indexes(PlannerInfo *root, ScanMethodHint *hint, RelOptInfo *rel,
 	foreach (cell, rel->indexlist)
 	{
 		IndexOptInfo   *info = (IndexOptInfo *) lfirst(cell);
-		char		   *indexname = get_rel_name(info->indexoid);
+		char		   *indexname = NULL;
 		ListCell	   *l;
 		bool			use_index = false;
 
+		if (info->hypothetical && explain_get_index_name_hook)
+			indexname = (char *) explain_get_index_name_hook(info->indexoid);
+		if (indexname == NULL)
+			indexname = get_rel_name(info->indexoid);
 		foreach(l, hint->indexnames)
 		{
 			char   *hintname = (char *) lfirst(l);
